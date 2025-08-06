@@ -1,0 +1,46 @@
+name: CI with MongoDB
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Khai báo service container cho MongoDB
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Checkout mã nguồn
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Cài đặt Node.js (nếu ứng dụng của bạn sử dụng Node.js)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Cài đặt dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Chạy test hoặc script tương tác với MongoDB
+      - name: Run tests
+        env:
+          MONGODB_URI: mongodb://localhost:27017/testdb
+        run: npm test
